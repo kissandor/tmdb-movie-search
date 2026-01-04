@@ -17,7 +17,7 @@ body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--bg-main);
     width: 100%;
-   /* min-height: 100vh;*/
+    min-height: 100vh;
     display: flex;
     justify-content: center;
 
@@ -84,11 +84,15 @@ body {
 
 .result {
     width: 100%;
+}
+
+.result-list{
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     flex: 1;
-
 }
 
 .result-container{
@@ -131,4 +135,24 @@ p{
 .release-date{
     font-size: 1.3rem;
     font-weight: bold;
+}
+
+.loader-container{
+    position: absolute;
+    top:50%;
+    left: 50%;
+    transform: translate(-50%,-50% );
+}
+
+.loader {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 8px solid;
+  border-color: #000 #0000;
+  animation: rotation 1.5s infinite;
+}
+
+@keyframes rotation {
+    to {transform: rotate(1turn)};
 }

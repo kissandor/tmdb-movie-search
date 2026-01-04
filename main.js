@@ -1,42 +1,73 @@
 const searchInput = document.querySelector(".search-input");
 const searchBtn = document.querySelector(".search-btn");
-const result = document.querySelector(".result");
+const resultList = document.querySelector(".result-list");
+const loader = document.querySelector(".loader");
 
 searchBtn.addEventListener("click", handleClick);
 
-displayPopularMovies();
+
+const state = {
+    loading: false,
+    errors: null,
+    movies: []
+};
+
 
 async function handleClick() {
-
-    clearScreen(result)
 
     const querry = searchInput.value.trim();
     if (!querry) return;
 
-    const movies = await getMovieDetails(querry);
+    setState({ loading: true, errors: null, movies: [] });
 
-    if (!movies || !movies.results || movies.results.length === 0) {
-        console.log("error");
-        return;
-    }
-
-    for (let i = 0; i < movies.results.length; i++) {
-        const movie = movies.results[i];
-        displayMovieDetails(movie);
+    try {
+        await delay(3000);
+        const moviesData = await getMovieDetails(querry);
+        setState({ loading: false, errors: null, movies: moviesData.results });
+    } catch (err) {
+        setState({ loading: false, errors: err });
     }
 
     clearInput(searchInput);
 }
 
-function displayMovieDetails(movie) {
+function render() {
+    loader.style.display = state.loading ? "block" : "none";
 
-    const resultContainer = createMovieCard();
-    fillMovieCard(resultContainer, movie);
+    resultList.replaceChildren();
 
-    result.appendChild(resultContainer);
+    if (state.errors) {
+        const errorMsg = document.createElement("p");
+        errorMsg.textContent = state.errors;
+        resultList.appendChild(errorMsg);
+        return;
+    }
+    state.movies.forEach(movie => displayMovieDetails(movie));
 }
 
-function createMovieCard(){
+
+(async () => {
+    setState({ loading: true })
+    try {
+        await delay(3000);
+        const movies = await getPopularFilmsData();
+        setState({ loading: false, movies: movies.results });
+    } catch (err) {
+        setState({ errors: err })
+    }
+})();
+
+
+function setState(newState) {
+    Object.assign(state, newState);
+    render();
+}
+
+function clearInput(inputForm) {
+    inputForm.value = "";
+}
+
+function createMovieCard() {
     const wrapper = document.createElement("div");
     wrapper.classList.add("result-container");
 
@@ -53,7 +84,7 @@ function createMovieCard(){
     return wrapper;
 }
 
-function fillMovieCard(movieCard, movie){
+function fillMovieCard(movieCard, movie) {
 
     movieCard.querySelector("img").src = poster(movie);
     movieCard.querySelector("img").alt = movie.title;
@@ -68,27 +99,18 @@ function fillMovieCard(movieCard, movie){
 
 function poster(movie) {
     return movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "img/default_poster.png";
-    }
-
-function clearScreen(container) {
-    container.replaceChildren();
 }
 
-function clearInput(inputForm) {
-    inputForm.value = "";
+function displayMovieDetails(movie) {
+
+    const card = createMovieCard();
+    fillMovieCard(card, movie);
+
+    resultList.appendChild(card);
 }
 
-async function displayPopularMovies(){
 
-    const movies = await getPopularFilmsData();
 
-    if (!movies || !movies.results || movies.results.length === 0) {
-        console.log("error");
-        return;
-    }
-
-    for (let i = 0; i < movies.results.length; i++) {
-        const movie = movies.results[i];
-        displayMovieDetails(movie);
-    }
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

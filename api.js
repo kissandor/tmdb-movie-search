@@ -9,7 +9,6 @@ const options = {
 
 const BASE_URL = "https://api.themoviedb.org/3";
 
-
 async function getPopularFilmsData() {
   try {
     const response = await fetch(`${BASE_URL}/movie/popular`, options);
@@ -22,9 +21,9 @@ async function getPopularFilmsData() {
 }
 
 
-async function getMovieDetails(query) {
+async function getMovieDetails(query, page = 1) {
   try {
-    const response = await fetch(`${BASE_URL}/search/movie?query=${encodeURIComponent(query)}`, options);
+    const response = await fetch(`${BASE_URL}/search/movie?query=${encodeURIComponent(query)}&page=${page}`, options);
     const data = await response.json();
     return data
   } catch (err) {

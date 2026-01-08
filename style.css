@@ -124,6 +124,8 @@ img {
   max-height: 100%;
   max-width: 100%;
   object-fit: contain;
+  opacity: 0.5;
+  transition: 1000ms;
 }
 
 .details{
@@ -162,4 +164,14 @@ p{
 
 @keyframes rotation {
     to {transform: rotate(1turn)};
+}
+
+.scroll-sentinel{
+    height: 20px;
+    width: 90%;
+}
+
+.visible{
+    transform: translateX(0);
+    opacity: 1;
 }

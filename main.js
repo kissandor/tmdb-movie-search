@@ -2,11 +2,13 @@ const searchInput = document.querySelector(".search-input");
 const searchBtn = document.querySelector(".search-btn");
 const resultList = document.querySelector(".result-list");
 const loader = document.querySelector(".loader");
-const loadMoreBtn = document.querySelector(".load-more-btn");
+//const loadMoreBtn = document.querySelector(".load-more-btn");
+const scrollSentinels = document.querySelectorAll(".scroll-sentinel");
+
 
 searchBtn.addEventListener("click", handleClick);
 
-loadMoreBtn.addEventListener("click", handleLoadMoreClick);
+//loadMoreBtn.addEventListener("click", handleLoadMoreClick);
 
 
 const state = {
@@ -19,6 +21,10 @@ const state = {
 };
 
 async function handleClick() {
+
+    document.querySelectorAll('img').forEach((image) =>{
+        cardImageObserver.unobserve(image);
+    })
 
     const querry = searchInput.value.trim();
     if (!querry) return;
@@ -36,12 +42,18 @@ async function handleClick() {
     clearInput(searchInput);
 }
 
+
 async function handleLoadMoreClick() {
-    setState({ loading: true, page: state.page + 1 });
+    if(state.loading) return;
+    if (state.page >= state.totalPages) return;
+    
+    setState({ loading: true });
+
+    let nextPage = 1 + state.page;
+
     try {
-        const moviesData = await getMovieDetails(state.query, state.page);
-        setState({ loading: false, errors: null, movies: state.movies.concat(moviesData.results) });
-        console.log(state);
+        const moviesData = await getMovieDetails(state.query, nextPage);
+        setState({ loading: false, errors: null, movies: state.movies.concat(moviesData.results), page: nextPage });
     } catch (err) {
         setState({ loading: false, errors: err });
     }
@@ -49,15 +61,14 @@ async function handleLoadMoreClick() {
 
 function render() {
     loader.style.display = state.loading ? "block" : "none";
-    
+
     resultList.replaceChildren();
-    console.log(state);
-    if (state.loading || state.page >= state.totalPages) {
-        loadMoreBtn.style.display = "none";
-    } else {
-        loadMoreBtn.style.display = "block";
-    }
-    
+    // if (state.loading || state.page >= state.totalPages) {
+    //     loadMoreBtn.style.display = "none";
+    // } else {
+    //     loadMoreBtn.style.display = "block";
+    // }
+
 
     if (state.errors) {
         const errorMsg = document.createElement("p");
@@ -65,7 +76,11 @@ function render() {
         resultList.appendChild(errorMsg);
         return;
     }
-    state.movies.forEach(movie => displayMovieDetails(movie));
+
+    state.movies.forEach((movie) => {
+
+        displayMovieDetails(movie);
+    })
 }
 
 
@@ -74,7 +89,6 @@ function render() {
     try {
         await delay(1500);
         const movies = await getPopularFilmsData();
-        // console.log(movies);
         setState({ loading: false, movies: movies.results });
     } catch (err) {
         setState({ errors: err })
@@ -105,6 +119,7 @@ function createMovieCard() {
                     </div>
     `;
 
+
     return wrapper;
 }
 
@@ -119,6 +134,8 @@ function fillMovieCard(movieCard, movie) {
 
     movieCard.querySelector(".overview").textContent =
         movie.overview || "No details available";
+
+
 }
 
 function poster(movie) {
@@ -129,10 +146,26 @@ function displayMovieDetails(movie) {
 
     const card = createMovieCard();
     fillMovieCard(card, movie);
+    const cardImage = card.querySelector("img");
+    cardImageObserver.observe(cardImage);
 
     resultList.appendChild(card);
 }
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+scrollSentinels.forEach(sentinel => {
+
+    sentinelObserver.observe(sentinel);
+
+});
+
+function onSentinelVisible() {
+    if (state.loading) return;
+    if (state.page >= state.totalPages) return;
+    if (state.errors) return;
+
+    handleLoadMoreClick();
 }
